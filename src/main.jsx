@@ -6,6 +6,8 @@ import ReactDOM from 'react-dom/client';
 import GlobalStyles from './styles/GlobalStyles';
 import Theme from './styles/Theme';
 import Routes from './routes';
+import { PrimeReactProvider } from 'primereact/api';
+import 'primereact/resources/themes/lara-light-indigo/theme.css';
 
 if (import.meta.env.VITE_NODE_ENV === 'production') {
   disableReactDevTools();
@@ -14,8 +16,10 @@ if (import.meta.env.VITE_NODE_ENV === 'production') {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Theme>
-      <GlobalStyles />
-      <Routes />
+      <PrimeReactProvider>
+        <GlobalStyles />
+        <Routes />
+      </PrimeReactProvider>
     </Theme>
   </React.StrictMode>,
 );
