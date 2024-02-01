@@ -1,19 +1,31 @@
 import { useEffect, useState } from 'react';
-import { useDeleteTools, useGetAITools } from '../../services/managerService';
-import { ModalStyle, ProfilePic, Table, TableColumn } from './Styles';
+import {
+  useDeleteTools,
+  useGetAITools,
+  usePostAITools,
+} from '../../services/managerService';
+import {
+  Container,
+  Inputs,
+  ModalStyle,
+  ProfilePic,
+  Table,
+  TableColumn,
+} from './Styles';
 import { RiDeleteBin5Line } from 'react-icons/ri';
 import { CloseOutlined } from '@ant-design/icons';
 import { colors } from '../../styles/styleVariables';
 import ModalDeleteUser from '../../Components/features/Modals/ModalDeleteUser/ModalDeleteUser';
+import { useForm } from 'react-hook-form';
 
 export default function Home() {
-  const [tools, setTools] = useState({});
-  console.log('✌️tools --->', tools);
+  const [tools, setTools] = useState([]);
   const [toolsID, setToolsID] = useState('');
   const columns = [
     { field: 'imageURL', header: 'Foto' },
     { field: 'name', header: 'Name' },
     { field: 'description', header: 'Descrisção' },
+    { field: 'manage', header: 'Manage' },
   ];
   const [modalDelete, setModalDelete] = useState(false);
   const openModalDelete = () => setModalDelete(true);
@@ -21,7 +33,7 @@ export default function Home() {
   const modalCloseButton = <CloseOutlined style={{ color: colors.white }} />;
   async function GettingTools() {
     const res = await useGetAITools({});
-    const formattedTools = res[0].map((tools) => ({
+    const formattedTools = res.map((tools) => ({
       imageURL: (
         <ProfilePic
           src={tools.imageURL}
@@ -60,15 +72,33 @@ export default function Home() {
       console.log(' error', error);
     }
   };
+  async function handleCreateAITools(data) {
+    try {
+      await usePostAITools(data);
+      GettingTools();
+    } catch (error) {
+      console.log(' error', error);
+    }
+  }
+
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm({});
+
+  const onSubmit = (data) => {
+    handleCreateAITools(data);
+  };
   return (
-    <div>
-      <Table value={tools[0]} paginator rows={10} removableSort>
-        {columns.map((data) => (
+    <Container>
+      <Table value={tools} paginator rows={10} removableSort>
+        {columns?.map((data) => (
           <TableColumn
             sortable
-            key={data.field}
-            field={data.field}
-            header={data.header}
+            key={data?.field}
+            field={data?.field}
+            header={data?.header}
           />
         ))}
       </Table>
@@ -89,6 +119,17 @@ export default function Home() {
           id={toolsID}
         />
       </ModalStyle>
-    </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Inputs>
+          <label htmlFor="">Nome</label>
+          <input type="name" {...register('name')} />
+          <label htmlFor="">ImageURL</label>
+          <input type="imageURL" {...register('imageURL')} />
+          <label htmlFor="">Descrição</label>
+          <input type="description" {...register('description')} />
+          <button>Enviar</button>
+        </Inputs>
+      </form>
+    </Container>
   );
 }

@@ -7,6 +7,7 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  align-items: center;
 `;
 export const Table = styled(DataTable)`
   display: flex;
@@ -33,4 +34,11 @@ export const ModalStyle = styled(Modal)`
     margin: 0;
     border-radius: none;
   }
+`;
+export const Inputs = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  flex-direction: column;
+  width: 50%;
 `;
