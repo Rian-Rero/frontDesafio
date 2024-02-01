@@ -39,6 +39,7 @@ export default function Home() {
       console.log('error', err);
     },
   });
+  console.log('✌️data --->', boatarde);
   const formattedTools = boatarde
     ? boatarde.map((tools) => ({
         imageURL: (
