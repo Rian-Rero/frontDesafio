@@ -17,9 +17,11 @@ import { CloseOutlined } from '@ant-design/icons';
 import { colors } from '../../styles/styleVariables';
 import ModalDeleteUser from '../../Components/features/Modals/ModalDeleteUser/ModalDeleteUser';
 import { useForm } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Home() {
   const [tools, setTools] = useState([]);
+  const queryClient = useQueryClient();
   const [toolsID, setToolsID] = useState('');
   const columns = [
     { field: 'imageURL', header: 'Foto' },
@@ -31,55 +33,56 @@ export default function Home() {
   const openModalDelete = () => setModalDelete(true);
   const closeModalDelete = () => setModalDelete(false);
   const modalCloseButton = <CloseOutlined style={{ color: colors.white }} />;
-  async function GettingTools() {
-    const res = await useGetAITools({});
-    const formattedTools = res.map((tools) => ({
-      imageURL: (
-        <ProfilePic
-          src={tools.imageURL}
-          alt={tools.name}
-          style={{ width: '50px', height: '50px' }}
-        />
-      ),
-      name: tools.name,
-      description: tools.description,
-      manage: (
-        <RiDeleteBin5Line
-          style={{ cursor: 'pointer' }}
-          onClick={() => {
-            openModalDelete();
-            setToolsID(tools?._id);
-          }}
-        />
-      ),
-    }));
 
-    setTools(formattedTools);
-  }
+  const { data: boatarde } = useGetAITools({
+    onError: (err) => {
+      console.log('error', err);
+    },
+  });
+  const formattedTools = boatarde
+    ? boatarde.map((tools) => ({
+        imageURL: (
+          <ProfilePic
+            src={tools.imageURL}
+            alt={tools.name}
+            style={{ width: '50px', height: '50px' }}
+          />
+        ),
+        name: tools.name,
+        description: tools.description,
+        manage: (
+          <RiDeleteBin5Line
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              openModalDelete();
+              setToolsID(tools?._id);
+            }}
+          />
+        ),
+      }))
+    : [];
 
-  useEffect(() => {
-    GettingTools();
-  }, []);
+  const { mutate: DeletingUsers } = useDeleteTools({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tools'],
+      });
+    },
+    onError: (err) => {
+      console.log(err);
+    },
+  });
 
-  const handleUserDelete = (_id) => {
-    DeletingUsers(_id);
-  };
-  const DeletingUsers = async (_id) => {
-    try {
-      await useDeleteTools(_id);
-      GettingTools();
-    } catch (error) {
-      console.log(' error', error);
-    }
-  };
-  async function handleCreateAITools(data) {
-    try {
-      await usePostAITools(data);
-      GettingTools();
-    } catch (error) {
-      console.log(' error', error);
-    }
-  }
+  const { mutate: handleCreateAITools } = usePostAITools({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tools'],
+      });
+    },
+    onError: (err) => {
+      console.log(err);
+    },
+  });
 
   const {
     handleSubmit,
@@ -92,7 +95,7 @@ export default function Home() {
   };
   return (
     <Container>
-      <Table value={tools} paginator rows={10} removableSort>
+      <Table value={formattedTools} paginator rows={10} removableSort>
         {columns?.map((data) => (
           <TableColumn
             sortable
@@ -115,7 +118,7 @@ export default function Home() {
       >
         <ModalDeleteUser
           close={closeModalDelete}
-          handleUserDelete={handleUserDelete}
+          handleUserDelete={DeletingUsers}
           id={toolsID}
         />
       </ModalStyle>
